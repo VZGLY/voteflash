@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VoteFlash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: { 50: '#ecfdf5', 500: '#10b981', 600: '#059669', 700: '#047857' },
+            },
+            fontFamily: { sans: ['system-ui', '-apple-system', 'Segoe UI', 'sans-serif'] },
+          },
+        },
+      };
+    </script>
+    <style>
+      .bar { transition: width 600ms cubic-bezier(0.22, 1, 0.36, 1); }
+      .pulse-dot::before {
+        content: ''; display: inline-block; width: 0.5rem; height: 0.5rem;
+        background: #22c55e; border-radius: 9999px; margin-right: 0.5rem;
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); animation: pulse 1.6s infinite;
+      }
+      @keyframes pulse {
+        70% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-100">
+    <!-- Header -->
+    <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur">
+      <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+        <a href="?" class="flex items-center gap-3">
+          <div class="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-brand-500 to-cyan-400 font-bold">V</div>
+          <div>
+            <div class="text-lg font-semibold tracking-tight">VoteFlash</div>
+            <div class="text-xs text-slate-400">Sondages en temps reel</div>
+          </div>
+        </a>
+        <div id="health-pill" class="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-400">
+          <span class="pulse-dot"></span><span id="health-text">connexion...</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-5xl px-6 py-8">
+      <!-- VUE ADMIN -->
+      <section id="view-admin" class="space-y-8">
+        <!-- Creation -->
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+          <h2 class="mb-4 text-xl font-semibold">Creer un sondage</h2>
+          <form id="form-create" class="space-y-3">
+            <input
+              id="f-question" type="text" required maxlength="200"
+              placeholder="Quelle question voulez-vous poser ?"
+              class="w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2.5 outline-none placeholder:text-slate-500 focus:border-brand-500"
+            />
+            <div id="f-options" class="space-y-2">
+              <input class="opt w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 outline-none placeholder:text-slate-500 focus:border-brand-500" placeholder="Option 1" />
+              <input class="opt w-full rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 outline-none placeholder:text-slate-500 focus:border-brand-500" placeholder="Option 2" />
+            </div>
+            <div class="flex items-center justify-between">
+              <button type="button" id="add-option" class="text-sm text-brand-500 hover:text-brand-600">+ ajouter une option</button>
+              <button type="submit" class="rounded-lg bg-brand-600 px-5 py-2 font-medium hover:bg-brand-700">Creer</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Layout 2 colonnes -->
+        <div class="grid gap-8 md:grid-cols-3">
+          <!-- Sondages -->
+          <div class="md:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+            <div class="mb-4 flex items-center justify-between">
+              <h2 class="text-xl font-semibold">Sondages</h2>
+              <button id="refresh-polls" class="text-xs text-slate-400 hover:text-slate-200">rafraichir</button>
+            </div>
+            <ul id="list-polls" class="space-y-2"></ul>
+          </div>
+          <!-- Leaderboard -->
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+            <h2 class="mb-4 text-xl font-semibold">Top sondages</h2>
+            <ol id="list-leaderboard" class="space-y-2 text-sm"></ol>
+          </div>
+        </div>
+      </section>
+
+      <!-- VUE VOTE -->
+      <section id="view-vote" class="hidden space-y-6">
+        <a href="?" class="inline-flex items-center gap-1 text-sm text-slate-400 hover:text-slate-200">&larr; retour</a>
+
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-8">
+          <div class="mb-1 text-xs uppercase tracking-wider text-slate-500">Sondage #<span id="v-id"></span></div>
+          <h1 id="v-question" class="text-3xl font-semibold tracking-tight">...</h1>
+          <div class="mt-3 flex items-center gap-3 text-sm text-slate-400">
+            <span class="pulse-dot"></span>
+            <span>Resultats en direct</span>
+            <span class="text-slate-600">|</span>
+            <span>Total : <span id="v-total" class="text-slate-200 font-medium">0</span> votes</span>
+          </div>
+        </div>
+
+        <div id="v-options" class="space-y-3"></div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

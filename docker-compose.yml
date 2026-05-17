@@ -1,0 +1,45 @@
+# VoteFlash - stack minimaliste : frontend + backend + redis
+#
+# Lancement : docker compose up -d --build
+# Acces     : http://localhost:8080
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: voteflash-redis
+    # Persistance AOF : les ecritures sont fsync regulierement sur disque
+    # -> les donnees survivent au redemarrage du container.
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+    container_name: voteflash-backend
+    environment:
+      REDIS_URL: redis://redis:6379
+      PORT: "3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: voteflash-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  redis-data:
