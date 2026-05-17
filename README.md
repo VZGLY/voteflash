@@ -4,6 +4,18 @@ Mini-app de sondages en temps reel.
 
 Stack : Node.js + Express, Redis, HTML/JS vanilla + nginx.
 
+## Images Docker
+
+Publiees sur Docker Hub :
+
+- Backend : <https://hub.docker.com/r/vaozgeely/voteflash-backend>
+- Frontend : <https://hub.docker.com/r/vaozgeely/voteflash-frontend>
+
+```bash
+docker pull vaozgeely/voteflash-backend:1.0.0
+docker pull vaozgeely/voteflash-frontend:1.0.0
+```
+
 ## Architecture
 
 ```
