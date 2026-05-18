@@ -1,0 +1,185 @@
+apiVersion: v1
+kind: Namespace
+metadata: 
+  name: voteflash
+
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+  namespace: voteflash
+  labels: 
+    env: test
+    app: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      env: test
+      app: redis
+  volumeClaimTemplates:
+    - metadata:
+        name: redis-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+  template:
+    metadata:
+      name: redis-pod
+      labels:
+        env: test
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:8.4.2-alpine3.22
+          command: ["redis-server", "--appendonly", "yes"]
+          ports:
+            - containerPort: 6379
+              name: redis
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: redis
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: voteflash
+  name: redis
+spec:
+  selector:
+    env: test
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: redis
+      name: redis
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: voteflash
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      env: test
+      app: backend
+  template:
+    metadata:
+      labels:
+        env: test
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: vaozgeely/voteflash-backend:1.0.0
+          ports: 
+            - containerPort: 3000
+              name: backend
+          env:
+            - name: REDIS_URL
+              value: "redis://redis:6379"
+            - name: PORT
+              value: "3000"
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: voteflash
+spec:
+  type: ClusterIP
+  selector: 
+    env: test
+    app: backend
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: backend
+      name: backend
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: voteflash
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      env: test
+      app: frontend
+  template:
+    metadata:
+      labels:
+        env: test
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: vaozgeely/voteflash-frontend:1.0.0
+          ports:
+            - containerPort: 80
+              name: frontend
+          resources:
+            requests:
+              cpu: "20m"
+              memory: "16Mi"
+            limits:
+              cpu: "200m"
+              memory: "64Mi"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: voteflash
+spec:
+  type: NodePort
+  selector:
+    env: test
+    app: frontend
+  ports:
+    - port: 80
+      nodePort: 30080
+      targetPort: frontend
